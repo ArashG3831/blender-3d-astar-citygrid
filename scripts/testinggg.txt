@@ -1,0 +1,56 @@
+import bpy
+import math
+
+# Get the cylinder named "Test" from the scene
+cylinder = bpy.data.objects.get("Test")
+
+if cylinder:
+    # Get the height of the cylinder
+    cylinder_height = cylinder.dimensions[2]
+
+    # Calculate the desired Z position for the cube (1/4 of the cylinder's height)
+#    cube_x_position = cylinder.location.x - (cylinder_height / 4.0) * math.sin(cylinder.rotation_euler.x) * math.sin(cylinder.rotation_euler.z)
+#    cube_y_position = cylinder.location.y + (cylinder_height / 4.0) * math.sin(cylinder.rotation_euler.x) * math.cos(cylinder.rotation_euler.z)
+#    cube_z_position = cylinder.location.z - (cylinder_height / 4.0) * math.cos(cylinder.rotation_euler.x)
+
+    cube_x_position = cylinder.location.x
+    cube_y_position = cylinder.location.y 
+    cube_z_position = cylinder.location.z 
+    
+    # Create a cube
+    bpy.ops.mesh.primitive_cube_add(size=1.2, location=(cube_x_position, cube_y_position, cube_z_position))
+
+    # Get the cube object
+    cube = bpy.context.object
+
+    # Set the cube's location to center its Z axis with the cylinder's Z axis
+    cube.location.z = cylinder.location.z
+
+    # Apply rotation to the cube to match the cylinder's orientation
+    cube.rotation_euler = cylinder.rotation_euler
+
+    # Set the cube's Z dimension to half of the cylinder's Z dimension
+    cube.dimensions.z = cylinder.dimensions.z
+
+    # Apply scale to the cube to make sure the boolean modifier works correctly
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+
+    # Move the cube to the 1/4 location relative to the cylinder's Z axis
+    cube.location.z = cube_z_position
+
+    # Add a boolean modifier to the cylinder
+    bool_modifier = cylinder.modifiers.new(name="Boolean", type='BOOLEAN')
+    bool_modifier.object = bpy.data.objects["Cube"]
+    bool_modifier.operation = 'DIFFERENCE'
+
+    # Apply the modifier to make the cylinder visible
+    bpy.ops.object.modifier_apply(modifier=bool_modifier.name)
+
+    # Set keyframes for scaling the cylinder
+    cylinder.scale[2] = 0.1  # Initial height
+    cylinder.keyframe_insert(data_path="scale", index=2, frame=1)  # Keyframe at frame 1
+
+    cylinder.scale[2] = 2  # Final height
+    cylinder.keyframe_insert(data_path="scale", index=2, frame=50)  # Keyframe at frame 50
+else:
+    print("Cylinder named 'Test' not found in the scene.")
